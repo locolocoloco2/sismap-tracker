@@ -509,6 +509,114 @@
   .app-footer strong { color: var(--text2); font-weight: 600; }
   .app-footer .footer-divider { margin: 0 8px; opacity: 0.4; }
 
+
+  /* ── RESPONSIVE MOBILE ────────────────────────────────────────────────── */
+  @media (max-width: 768px) {
+
+    /* Header */
+    header {
+      padding: 0 14px;
+      height: auto;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding-top: 12px;
+      padding-bottom: 12px;
+    }
+    .logo-wrap { gap: 8px; }
+    .logo-wrap img { height: 34px; }
+    .logo-text { font-size: 13px; }
+    .logo-sub { font-size: 10px; }
+
+    .header-center {
+      order: 3;
+      width: 100%;
+      justify-content: center;
+    }
+    .tab-btn { font-size: 12px; padding: 6px 12px; }
+
+    .header-right { gap: 7px; }
+    .theme-toggle { width: 34px; height: 34px; font-size: 14px; }
+    #btn-snap { font-size: 11px; padding: 6px 11px; }
+
+    /* Main */
+    main { padding: 14px; }
+
+    /* Status bar */
+    .top-bar { flex-direction: column; align-items: flex-start; gap: 10px; }
+    .status-pill { font-size: 11px; width: 100%; justify-content: center; }
+
+    /* Summary grid: 2 columns on mobile */
+    .summary-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .stat-card { padding: 14px; }
+    .stat-card .val { font-size: 22px; }
+    .stat-card .icon { font-size: 16px; margin-bottom: 6px; }
+
+    /* Indicator header */
+    .ind-header { padding: 10px 12px; gap: 7px; flex-wrap: nowrap; }
+    .ind-id { font-size: 10px; }
+    .color-pill { font-size: 9px; padding: 2px 7px; }
+    .ind-name { font-size: 12px; }
+    .ind-pts { font-size: 11px; }
+    .venc-badge { font-size: 9px; padding: 2px 7px; }
+
+    /* Sub table: stack on mobile */
+    .sub-table { overflow-x: auto; }
+    .sub-row {
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+    .sub-row.head { display: none; } /* Hide column headers, use inline labels */
+    .sub-row > div {
+      border-right: none;
+      border-bottom: 1px solid var(--border);
+      padding: 6px 12px;
+    }
+    .sub-row > div:last-child { border-bottom: none; }
+    .sub-row > div:first-child {
+      font-weight: 600;
+      font-size: 12px;
+      padding-top: 10px;
+      color: var(--text);
+    }
+    .sub-row { border-bottom: 2px solid var(--border2); }
+    .sub-row:last-child { border-bottom: none; }
+
+    /* Diff controls */
+    .diff-controls { flex-direction: column; align-items: stretch; }
+    .diff-controls select { width: 100%; }
+    .diff-controls .sep { display: none; }
+
+    /* Diff row: stack */
+    .diff-row { grid-template-columns: 1fr 1fr; }
+    .diff-row.head > div:nth-child(3),
+    .diff-row.head > div:nth-child(4),
+    .diff-row.head > div:nth-child(5) { display: none; }
+    .diff-row > div:nth-child(3),
+    .diff-row > div:nth-child(4),
+    .diff-row > div:nth-child(5) { display: none; }
+
+    /* Snap items */
+    .snap-item { flex-wrap: wrap; gap: 6px; }
+    .snap-date { min-width: unset; font-size: 10px; }
+    .snap-note { width: 100%; order: 3; }
+    .snap-actions { margin-left: 0; }
+
+    /* Section title */
+    .section-title { font-size: 10px; }
+
+    /* Footer */
+    .app-footer { font-size: 10px; padding: 16px 14px; }
+
+    /* Page titles */
+    .page-title { font-size: 15px; }
+    .section-bar { flex-direction: column; align-items: flex-start; }
+  }
+
+  @media (max-width: 400px) {
+    .summary-grid { grid-template-columns: 1fr 1fr; }
+    .tab-btn { font-size: 11px; padding: 5px 9px; }
+  }
+
 </style>
 </head>
 <body>
