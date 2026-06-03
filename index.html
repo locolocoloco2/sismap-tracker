@@ -559,27 +559,42 @@
     .ind-pts { font-size: 11px; }
     .venc-badge { font-size: 9px; padding: 2px 7px; }
 
-    /* Sub table: stack on mobile */
-    .sub-table { overflow-x: auto; }
-    .sub-row {
-      grid-template-columns: 1fr;
-      gap: 0;
-    }
-    .sub-row.head { display: none; } /* Hide column headers, use inline labels */
-    .sub-row > div {
-      border-right: none;
-      border-bottom: 1px solid var(--border);
-      padding: 6px 12px;
-    }
-    .sub-row > div:last-child { border-bottom: none; }
-    .sub-row > div:first-child {
+    /* Sub table: card layout on mobile */
+    .sub-table { overflow: visible; }
+    .sub-row { display: block; border-bottom: 1px solid var(--border); padding: 10px 12px; }
+    .sub-row:last-child { border-bottom: none; }
+    .sub-row.head { display: none; }
+    .sub-row > div:not(.sub-name-cell):not(.sub-meta) { display: none !important; border: none; padding: 0; }
+
+    /* Show as mini card using data attributes */
+    .sub-row .sub-name-cell {
+      display: block;
       font-weight: 600;
       font-size: 12px;
-      padding-top: 10px;
       color: var(--text);
+      margin-bottom: 6px;
     }
-    .sub-row { border-bottom: 2px solid var(--border2); }
-    .sub-row:last-child { border-bottom: none; }
+    .sub-row .sub-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+    .sub-row .sub-meta-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 11px;
+      color: var(--text2);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      padding: 2px 8px;
+      border-radius: 20px;
+    }
+    .sub-row .sub-meta-item.venc-item { color: var(--muted); }
+    .sub-row .sub-meta-item.venc-item.critico { background: var(--red-soft); border-color: #fecaca; color: var(--red); }
+    .sub-row .sub-meta-item.venc-item.proximo { background: var(--yellow-soft); border-color: #fde68a; color: var(--yellow); }
+    .sub-row .sub-meta-item.val-item { font-weight: 700; font-family: 'DM Mono', monospace; }
 
     /* Diff controls */
     .diff-controls { flex-direction: column; align-items: stretch; }
@@ -1007,12 +1022,22 @@ function renderTracker(data) {
         else if (s.estado==='No Remitido'){ebClass='eb-noremitido';ebLabel='No Remitido';}
         else if (s.estado==='No Aplica'){ebClass='eb-noaplica';ebLabel='No Aplica';}
         else if (s.estado==='Inactivo Temporal'){ebClass='eb-inactivo';ebLabel='Inactivo';}
+        const vc2 = vencClass(s.venc, s.estado);
         html += `<div class="sub-row">
+          <!-- Desktop columns -->
           <div>${s.id} ${s.nombre}</div>
-          <div class="sub-venc ${vencClass(s.venc, s.estado)}">${s.venc||'—'}</div>
+          <div class="sub-venc ${vc2}">${s.venc||'—'}</div>
           <div class="sub-verif">${s.verif||'—'}</div>
           <div class="sub-val" style="color:${vc}">${s.valor!==null?s.valor:'—'}</div>
           <div class="sub-estado-cell"><span class="estado-badge ${ebClass}">${ebLabel}</span></div>
+          <!-- Mobile card layout -->
+          <div class="sub-name-cell">${s.id} — ${s.nombre}</div>
+          <div class="sub-meta">
+            ${s.venc ? `<span class="sub-meta-item venc-item ${vc2}">📅 ${s.venc}</span>` : ''}
+            ${s.verif ? `<span class="sub-meta-item">👤 ${s.verif}</span>` : ''}
+            ${s.valor !== null ? `<span class="sub-meta-item val-item" style="color:${vc}">${s.valor} pts</span>` : ''}
+            <span class="sub-meta-item"><span class="estado-badge ${ebClass}">${ebLabel}</span></span>
+          </div>
         </div>`;
       });
       html += `</div></div>`;
