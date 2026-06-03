@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SISMAP Tracker — PROPEEP</title>
+<meta name="theme-color" content="#1a3a6b">
+<link rel="manifest" href="manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Open+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -653,6 +655,7 @@
 
   <div class="header-right">
     <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn" title="Cambiar tema">🌙</button>
+    <button class="theme-toggle" onclick="enableNotifs()" id="notif-btn" title="Activar notificaciones">🔔</button>
     <button class="btn primary" id="btn-snap" onclick="takeSnapshot()" disabled>📸 Guardar Snapshot</button>
   </div>
 </header>
@@ -1317,9 +1320,135 @@ async function fetchAndAutoSnapshot() {
   btn.disabled = false;
 }
 
+
+// ─── SERVICE WORKER + PUSH NOTIFICATIONS ─────────────────────────────────────
+
+async function registerSW() {
+  if (!('serviceWorker' in navigator)) return;
+  try {
+    const reg = await navigator.serviceWorker.register('/sw.js');
+    console.log('SW registrado:', reg.scope);
+  } catch(e) {
+    console.warn('SW no pudo registrarse:', e);
+  }
+}
+
+async function requestNotifPermission() {
+  if (!('Notification' in window)) return false;
+  if (Notification.permission === 'granted') return true;
+  if (Notification.permission === 'denied') return false;
+  const result = await Notification.requestPermission();
+  return result === 'granted';
+}
+
+function sendNotification(title, body, icon) {
+  if (!('serviceWorker' in navigator) || Notification.permission !== 'granted') return;
+  navigator.serviceWorker.ready.then(reg => {
+    reg.showNotification(title, {
+      body,
+      icon: icon || '/icon-192.png',
+      badge: '/icon-192.png',
+      vibrate: [200, 100, 200],
+      tag: 'sismap-cambio',
+      renotify: true,
+    });
+  });
+}
+
+function checkPromedioChange(newData) {
+  const snaps = loadSnaps();
+  if (!snaps.length) return;
+  const last = snaps[0];
+  const diff = parseFloat((newData.promedio - last.promedio).toFixed(2));
+  if (diff === 0) return;
+
+  const subio = diff > 0;
+  const emoji = subio ? '📈' : '📉';
+  const texto = subio ? `subió +${diff}%` : `bajó ${diff}%`;
+
+  sendNotification(
+    `${emoji} SISMAP: Promedio ${texto}`,
+    `Nuevo promedio: ${newData.promedio}% (antes: ${last.promedio}%)`,
+  );
+}
+
+// Show notification permission banner
+function showNotifBanner() {
+  if (!('Notification' in window)) return;
+  if (Notification.permission !== 'default') return;
+  // Only show once per session
+  if (sessionStorage.getItem('notif_asked')) return;
+  sessionStorage.setItem('notif_asked', '1');
+
+  const banner = document.createElement('div');
+  banner.id = 'notif-banner';
+  banner.style.cssText = `
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: var(--surface); border: 1px solid var(--accent);
+    border-radius: 14px; padding: 14px 20px; box-shadow: var(--shadow-lg);
+    display: flex; align-items: center; gap: 12px; z-index: 9999;
+    max-width: 420px; width: calc(100% - 40px);
+    font-family: 'Open Sans', sans-serif; font-size: 13px; color: var(--text);
+  `;
+  banner.innerHTML = `
+    <span style="font-size:22px">🔔</span>
+    <div style="flex:1">
+      <div style="font-weight:600;margin-bottom:2px">Activar notificaciones</div>
+      <div style="font-size:11px;color:var(--muted)">Te avisamos cuando el promedio suba o baje</div>
+    </div>
+    <button onclick="enableNotifs()" style="
+      font-family:'Open Sans',sans-serif;font-size:12px;font-weight:600;
+      background:var(--accent);color:#fff;border:none;padding:7px 14px;
+      border-radius:8px;cursor:pointer;white-space:nowrap;">
+      Activar
+    </button>
+    <button onclick="document.getElementById('notif-banner').remove()" style="
+      font-family:'Open Sans',sans-serif;font-size:18px;background:none;
+      border:none;color:var(--muted);cursor:pointer;padding:0 4px;line-height:1;">
+      ×
+    </button>
+  `;
+  document.body.appendChild(banner);
+}
+
+async function enableNotifs() {
+  const granted = await requestNotifPermission();
+  const banner = document.getElementById('notif-banner');
+  if (banner) banner.remove();
+  if (granted) {
+    // Show confirmation
+    sendNotification('🔔 Notificaciones activadas', 'Te avisaremos cuando el promedio del SISMAP cambie.');
+    // Update bell icon
+    updateNotifBtn();
+  }
+}
+
+function updateNotifBtn() {
+  const btn = document.getElementById('notif-btn');
+  if (!btn) return;
+  if (!('Notification' in window)) { btn.style.display='none'; return; }
+  if (Notification.permission === 'granted') {
+    btn.textContent = '🔔';
+    btn.title = 'Notificaciones activas';
+    btn.style.borderColor = 'var(--green)';
+    btn.style.color = 'var(--verde)';
+  } else if (Notification.permission === 'denied') {
+    btn.textContent = '🔕';
+    btn.title = 'Notificaciones bloqueadas en el navegador';
+    btn.style.opacity = '0.5';
+  } else {
+    btn.textContent = '🔔';
+    btn.title = 'Activar notificaciones';
+  }
+}
+
+registerSW();
+
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 refreshSelects();
 fetchAndAutoSnapshot();
+showNotifBanner();
+updateNotifBtn();
 </script>
 
 <footer class="app-footer">
